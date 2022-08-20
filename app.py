@@ -1,5 +1,6 @@
 from flask import Flask, flash, redirect, render_template, request, session
 from flask_session import Session
+from flask_mysqldb import MySQL
 from functools import wraps
 from flask import g, request, redirect, url_for
 
@@ -7,6 +8,7 @@ app = Flask(__name__)
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+mysql = MySQL(app)
 
 def login_required(f):
     @wraps(f)

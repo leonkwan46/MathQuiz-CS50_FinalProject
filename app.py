@@ -5,9 +5,16 @@ from functools import wraps
 from flask import g, request, redirect, url_for
 
 app = Flask(__name__)
+app.config["TEMPLATES_AUTO_RELOAD"] = True
+
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+app.config["MYSQL_HOST"] = "localhost"
+app.config["MYSQL_USER"] = "root"
+app.config["MYSQL_PASSWORD"] = ""
+app.config["MYSQL_DB"] = "quiz"
 mysql = MySQL(app)
 
 def login_required(f):
@@ -18,30 +25,35 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
-# HomePage (Logged)
-@app.route("/")
-@login_required
+@app.route('/')
 def home():
-    return render_template("??.html")
-
-# Register
-@app.route("/register", method = ["GET", "POST"])
-def register():
-    name = request.form.get("name")
-    password = request.form.get("password")
-    confirmpass = request.form.get("confirmpass")
+    cur = mysql.connection.cursor()
+    cur.execute("SELECT * FROM user")
+    fetchdata = cur.fetchall()
+    cur.close()
+    return render_template("test.html", data = fetchdata)
 
 
-    return render_template("register.html")
 
-# LogIn
-@app.route("/login", method = ["GET", "POST"])
-def login():
-    if request.method == "POST":
-        name = request.form.get("name").strip()
-        password = request.form.get("password").strip()
+# @app.route("/login", methods=["GET", "POST"])
+# def login():
+#     session.clear()
+#     if request.method == "GET":
+#         return render_template("login.html")
+    
+#     else:
+#         if not request.form.get("username"):
+#             return 
 
-        session["user_id"] = name[0]["id"]
+#         elif not request.form.get("password"):
+#             return 
 
-    return render_template("login.html")
+#         rows = db.execute("SELECT * FROM users WHERE username = ?", request.form.get("username").strip())
+#         if len(rows) != 1 or not check_password_hash(rows[0]["hash"], request.form.get("password").strip()):
+#             return apology("invalid username and/or password", 403)
 
+#         session["user_id"] = rows[0]["id"]
+#         return redirect("/")
+
+if __name__ == '__main__':
+    app.run(debug=True)

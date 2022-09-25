@@ -1,5 +1,9 @@
 <html>
     <body>
-        {{data}}
+        {% for score in score_data %}
+            <li>{{ score["score_easy"] }}</li>
+            <li>{{ score["score_medium"] }}</li>
+            <li>{{ score["score_hard"] }}</li>
+        {% endfor %}
     </body>
 </html>

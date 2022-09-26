@@ -7,7 +7,6 @@ from flask import g, request, redirect, url_for
 from flask_cors import CORS
 
 
-
 app = Flask(__name__)
 CORS(app)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -49,53 +48,47 @@ def home():
 def login():
 
     session.clear()
-    if request.method == "GET":
-        return render_template("test2.html")
 
-    else:
-        if not request.form.get("username"):
-            return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
-        if not request.form.get("password"):
-            return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
+    if not request.form.get("username"):
+        return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
+    if not request.form.get("password"):
+        return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
 
-        username = request.form.get("username").strip()
-        password = request.form.get("password").strip()
-        
-        db = mysql.connection.cursor()
-        db.execute("SELECT * FROM users WHERE username LIKE %s", [username])
-        rows = db.fetchall()
-        if len(rows) != 1 or rows[0]["password"] != password:
-            return make_response(jsonify({'errorMessage': 'Login failed 2'}), 401)
+    username = request.form.get("username").strip()
+    password = request.form.get("password").strip()
+    
+    db = mysql.connection.cursor()
+    db.execute("SELECT * FROM users WHERE username LIKE %s", [username])
+    rows = db.fetchall()
+    if len(rows) != 1 or rows[0]["password"] != password:
+        return make_response(jsonify({'errorMessage': 'Login failed 2'}), 401)
 
-        session["user_id"] = rows[0]["userID"]
-        return redirect("/")
+    session["user_id"] = rows[0]["userID"]
+    return redirect("/")
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
     session.clear()
-    if request.method == "GET":
-        return render_template("test3.html")
 
-    else:
-        con = mysql.connection
-        db = con.cursor()
-    
-        username = request.form.get("username").strip()
-        password = request.form.get("password").strip()
-        confirm = request.form.get("confirmation").strip()
+    con = mysql.connection
+    db = con.cursor()
 
-        if not username:
-            return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
-        if not password:
-            return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
-        if not confirm:
-            return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
-        if password != confirm:
-            return make_response(jsonify({'errorMessage': 'Password not the same'}), 401)
+    username = request.form.get("username").strip()
+    password = request.form.get("password").strip()
+    confirm = request.form.get("confirmation").strip()
 
-        db.execute("INSERT INTO users(username, password) VALUES (%s,%s)", (username, password))
-        con.commit()
-        new_user = db.fetchall()
-        session["user_id"] = new_user
-        return redirect("/")
+    if not username:
+        return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
+    if not password:
+        return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
+    if not confirm:
+        return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
+    if password != confirm:
+        return make_response(jsonify({'errorMessage': 'Password not the same'}), 401)
+
+    db.execute("INSERT INTO users(username, password) VALUES (%s,%s)", (username, password))
+    con.commit()
+    new_user = db.fetchall()
+    session["user_id"] = new_user
+    return redirect("/")

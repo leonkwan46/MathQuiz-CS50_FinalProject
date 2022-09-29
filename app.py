@@ -36,6 +36,7 @@ def login_required(f):
 
 @app.route("/", methods=["GET", "POST"])
 # @login_required
+
 def home():
     db = mysql.connection.cursor()
     # user_id = session["user_id"]
@@ -49,13 +50,13 @@ def login():
 
     session.clear()
 
-    if not request.form.get("username"):
+    if not request.json["username"]:
         return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
-    if not request.form.get("password"):
+    if not request.json["password"]:
         return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
 
-    username = request.form.get("username").strip()
-    password = request.form.get("password").strip()
+    username = request.json["username"]
+    password = request.json["password"]
     
     db = mysql.connection.cursor()
     db.execute("SELECT * FROM users WHERE username LIKE %s", [username])
@@ -74,18 +75,13 @@ def register():
     con = mysql.connection
     db = con.cursor()
 
-    username = request.form.get("username").strip()
-    password = request.form.get("password").strip()
-    confirm = request.form.get("confirmation").strip()
+    username = request.json["username"]
+    password = request.json["password"]
 
     if not username:
         return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
     if not password:
-        return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
-    if not confirm:
-        return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
-    if password != confirm:
-        return make_response(jsonify({'errorMessage': 'Password not the same'}), 401)
+        return make_response(jsonify({'errorMessage': 'Register failed'}), 403)
 
     db.execute("INSERT INTO users(username, password) VALUES (%s,%s)", (username, password))
     con.commit()

@@ -6,7 +6,6 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from flask import g, request, redirect, url_for
 from flask_cors import CORS
 
-
 app = Flask(__name__)
 CORS(app)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
@@ -61,7 +60,8 @@ def login():
     db = mysql.connection.cursor()
     db.execute("SELECT * FROM users WHERE username LIKE %s", [username])
     rows = db.fetchall()
-    if len(rows) != 1 or rows[0]["password"] != password:
+
+    if len(rows) != 1 or not check_password_hash(rows[0]["password"] != password):
         return make_response(jsonify({'errorMessage': 'Login failed 2'}), 401)
 
     session["user_id"] = rows[0]["userID"]
@@ -83,8 +83,13 @@ def register():
     if not password:
         return make_response(jsonify({'errorMessage': 'Register failed'}), 403)
 
-    db.execute("INSERT INTO users(username, password) VALUES (%s,%s)", (username, password))
-    con.commit()
-    new_user = db.fetchall()
+    hash = generate_password_hash(password)
+    try:
+        db.execute("INSERT INTO users(username, hash, password) VALUES (%s,%s,%s)", (username, hash, password))
+        con.commit()
+        new_user = db.fetchall()
+    except:
+        return make_response(jsonify({'errorMessage': 'Account Existed!'}), 403)
+
     session["user_id"] = new_user
     return redirect("/")

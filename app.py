@@ -1,4 +1,5 @@
-from flask import Flask, flash, make_response, jsonify, redirect, render_template, request, session
+from unicodedata import name
+from flask import Flask, make_response, jsonify, redirect, request, session
 from flask_session import Session
 from flask_mysqldb import MySQL
 from functools import wraps
@@ -33,8 +34,11 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+
+
+# HomePage
 @app.route("/", methods=["GET", "POST"])
-# @login_required
+@login_required
 
 def home():
     db = mysql.connection.cursor()
@@ -44,6 +48,9 @@ def home():
         data = db.fetchall()
         return make_response(jsonify(data))
 
+
+
+# LoginPage
 @app.route("/login", methods=["GET", "POST"])
 def login():
 
@@ -67,6 +74,9 @@ def login():
     session["user_id"] = rows[0]["userID"]
     return redirect("/")
 
+
+
+# RegisterPage
 @app.route("/register", methods=["GET", "POST"])
 def register():
 
@@ -81,7 +91,7 @@ def register():
     if not username:
         return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
     if not password:
-        return make_response(jsonify({'errorMessage': 'Register failed'}), 403)
+        return make_response(jsonify({'errorMessage': 'Register failed'}), 401)
 
     hash = generate_password_hash(password)
     try:
@@ -89,7 +99,27 @@ def register():
         con.commit()
         new_user = db.fetchall()
     except:
-        return make_response(jsonify({'errorMessage': 'Account Existed!'}), 403)
+        return make_response(jsonify({'errorMessage': 'Account Existed!'}), 401)
 
     session["user_id"] = new_user
     return redirect("/")
+
+
+
+# ContactUs
+@app.route("/contact", methods=["GET", "POST"])
+def contact():
+    
+    con = mysql.connection
+    db = con.cursor()
+
+    name = request.json["name"]
+    email = request.json["email"]
+    subject = request.json["subject"]
+    message = request.json["message"]
+
+    try:
+        db.execute("INSERT INTO message(name, email, subject, message) VALUES (%s,%s,%s,%s)", (name, email, subject, message))
+        con.commit()
+    except:
+        return make_response(jsonify({'errorMessage': 'Try Again!'}), 401)

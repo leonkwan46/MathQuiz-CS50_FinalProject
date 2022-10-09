@@ -37,14 +37,14 @@ def login_required(f):
 
 
 # HomePage
-@app.route("/", methods=["GET", "POST"])
+@app.route("/user", methods=["GET", "POST"])
 @login_required
 
 def home():
     db = mysql.connection.cursor()
-    # user_id = session["user_id"]
+    user_id = session["user_id"]
     if request.method == "GET":
-        db.execute("SELECT score_easy, score_medium, score_hard FROM users WHERE userID=(%s)",'1')
+        db.execute("SELECT score_easy, score_medium, score_hard FROM users WHERE userID=(%s)",user_id)
         data = db.fetchall()
         return make_response(jsonify(data))
 
@@ -68,11 +68,11 @@ def login():
     db.execute("SELECT * FROM users WHERE username LIKE %s", [username])
     rows = db.fetchall()
 
-    if len(rows) != 1 or not check_password_hash(rows[0]["password"] != password):
-        return make_response(jsonify({'errorMessage': 'Login failed 2'}), 401)
+    if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
+        return make_response(jsonify({'errorMessage': 'Incorrect username or password'}), 401)
 
     session["user_id"] = rows[0]["userID"]
-    return redirect("/")
+    return make_response(jsonify({'message': 'Login Success'}), 200)
 
 
 
@@ -102,8 +102,7 @@ def register():
         return make_response(jsonify({'errorMessage': 'Account Existed!'}), 401)
 
     session["user_id"] = new_user
-    return redirect("/")
-
+    return make_response(jsonify({'message': 'Register Success'}), 200)
 
 
 # ContactUs

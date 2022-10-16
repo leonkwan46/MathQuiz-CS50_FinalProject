@@ -104,6 +104,28 @@ def register():
     session["user_id"] = new_user
     return make_response(jsonify({'message': 'Register Success'}), 200)
 
+# ForgetPassPage
+@app.route("/forget", methods=["GET", "POST"])
+@login_required
+
+def forget():
+    user_id = session["user_id"]
+    con = mysql.connection
+    db = con.cursor()
+
+    newpass = request.json["newpass"]
+
+    if not newpass:
+        return make_response(jsonify({'errorMessage': 'Changed failed'}), 401)
+
+    hash = generate_password_hash(newpass)
+    try:
+        db.execute("UPDATE users SET password = %s WHERE id = %s", (hash, user_id))
+        con.commit()
+    except:
+        return make_response(jsonify({'errorMessage': 'Unsuccessful!'}), 401)
+
+    return make_response(jsonify({'message': 'Changed Password Success'}), 200)
 
 # ContactUs
 @app.route("/contact", methods=["GET", "POST"])

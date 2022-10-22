@@ -1,4 +1,4 @@
-from unicodedata import name
+from datetime import datetime, timedelta
 from flask import Flask, make_response, jsonify, redirect, request, session
 from flask_session import Session
 from flask_mysqldb import MySQL
@@ -6,6 +6,7 @@ from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import g, request, redirect, url_for
 from flask_cors import CORS
+import jwt
 
 app = Flask(__name__)
 CORS(app)
@@ -24,37 +25,50 @@ app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = ""
 app.config["MYSQL_DB"] = "quiz"
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
+app.config['SECRET_KEY'] = 'test key'
 mysql = MySQL(app)
 
-def login_required(f):
+
+
+def token_required(f):
     @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if g.user is None:
-            return redirect(url_for('login', next=request.url))
-        return f(*args, **kwargs)
-    return decorated_function
-
-
+    def decorated(*args, **kwargs):
+        token = None
+        # jwt is passed in the request header
+        if 'x-access-token' in request.headers:
+            token = request.headers['x-access-token']
+        # return 401 if token is not passed
+        if not token:
+            return jsonify({'message' : 'Token is missing'}), 401
+        
+        try:
+            # decoding the payload to fetch the stored details
+            data = jwt.decode(token, app.config['SECRET_KEY'], algorithms="HS256")
+            user_id = data["userID"]
+            # TODO: look for current user data here
+        except:
+            return jsonify({
+                'message' : 'Invalid token'
+            }), 401
+        # returns the current logged in users contex to the routes
+        return  f(user_id, *args, **kwargs)
+  
+    return decorated
 
 # HomePage
 @app.route("/user", methods=["GET", "POST"])
-@login_required
+@token_required
 
-def home():
+def home(user_id):
     db = mysql.connection.cursor()
-    user_id = session["user_id"]
     if request.method == "GET":
-        db.execute("SELECT score_easy, score_medium, score_hard FROM users WHERE userID=(%s)",user_id)
-        data = db.fetchall()
-        return make_response(jsonify(data))
-
-
+        db.execute("SELECT score_easy, score_medium, score_hard, username FROM users WHERE userID=(%s)",[user_id])
+        data = db.fetchone()
+        return make_response(jsonify({'data': data}), 200)
 
 # LoginPage
 @app.route("/login", methods=["GET", "POST"])
 def login():
-
-    session.clear()
 
     if not request.json["username"]:
         return make_response(jsonify({'errorMessage': 'Login failed'}), 401)
@@ -71,10 +85,12 @@ def login():
     if len(rows) != 1 or not check_password_hash(rows[0]["hash"], password):
         return make_response(jsonify({'errorMessage': 'Incorrect username or password'}), 401)
 
-    session["user_id"] = rows[0]["userID"]
-    return make_response(jsonify({'message': 'Login Success'}), 200)
+    token = jwt.encode({
+        'userID': rows[0]["userID"],
+        'exp': datetime.utcnow() + timedelta(minutes = 30)
+    }, app.config['SECRET_KEY'], algorithm="HS256")
 
-
+    return make_response(jsonify({'token' : token}), 200)
 
 # RegisterPage
 @app.route("/register", methods=["GET", "POST"])
@@ -106,21 +122,20 @@ def register():
 
 # ForgetPassPage
 @app.route("/forget", methods=["GET", "POST"])
-@login_required
 
 def forget():
-    user_id = session["user_id"]
     con = mysql.connection
     db = con.cursor()
 
-    newpass = request.json["newpass"]
+    username = request.json["username"]
+    newpass = request.json["password"]
 
     if not newpass:
         return make_response(jsonify({'errorMessage': 'Changed failed'}), 401)
 
     hash = generate_password_hash(newpass)
     try:
-        db.execute("UPDATE users SET password = %s WHERE id = %s", (hash, user_id))
+        db.execute("UPDATE users SET hash = %s, password = %s WHERE username = %s", (hash, newpass, username))
         con.commit()
     except:
         return make_response(jsonify({'errorMessage': 'Unsuccessful!'}), 401)
@@ -144,3 +159,4 @@ def contact():
         con.commit()
     except:
         return make_response(jsonify({'errorMessage': 'Try Again!'}), 401)
+    return make_response(jsonify({'message': 'Message sent.'}), 200)

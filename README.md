@@ -8,4 +8,4 @@
 
 📏 We tried using AWS Services, such as EC2, Lambda, RDS, IAM - We ended up paying USD 70+ for Database service and we quit using it (Great Experience tho 🥲)
 
-📏 We end up using localhost server, with XAMPP, Apache to connect MySQL server
+📏 We Decided to use localhost server, with XAMPP, Apache to connect MySQL server

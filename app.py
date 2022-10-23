@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from flask import Flask, make_response, jsonify, redirect, request, session
 from flask_session import Session
 from flask_mysqldb import MySQL
-from functools import wraps
+from functools import total_ordering, wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from flask import g, request, redirect, url_for
 from flask_cors import CORS
@@ -58,13 +58,13 @@ def token_required(f):
 # HomePage
 @app.route("/user", methods=["GET", "POST"])
 @token_required
-
 def home(user_id):
+
     db = mysql.connection.cursor()
-    if request.method == "GET":
-        db.execute("SELECT score_easy, score_medium, score_hard, username FROM users WHERE userID=(%s)",[user_id])
-        data = db.fetchone()
-        return make_response(jsonify({'data': data}), 200)
+    db.execute("SELECT score_easy, score_medium, score_hard, username FROM users WHERE userID = %s",[user_id])
+    data = db.fetchone()
+    return make_response(jsonify({'data': data}), 200)
+
 
 # LoginPage
 @app.route("/login", methods=["GET", "POST"])
@@ -87,16 +87,15 @@ def login():
 
     token = jwt.encode({
         'userID': rows[0]["userID"],
-        'exp': datetime.utcnow() + timedelta(minutes = 30)
+        'exp': datetime.utcnow() + timedelta(minutes = 3000)
     }, app.config['SECRET_KEY'], algorithm="HS256")
 
     return make_response(jsonify({'token' : token}), 200)
 
+
 # RegisterPage
 @app.route("/register", methods=["GET", "POST"])
 def register():
-
-    session.clear()
 
     con = mysql.connection
     db = con.cursor()
@@ -120,9 +119,9 @@ def register():
     session["user_id"] = new_user
     return make_response(jsonify({'message': 'Register Success'}), 200)
 
+
 # ForgetPassPage
 @app.route("/forget", methods=["GET", "POST"])
-
 def forget():
     con = mysql.connection
     db = con.cursor()
@@ -142,6 +141,7 @@ def forget():
 
     return make_response(jsonify({'message': 'Changed Password Success'}), 200)
 
+
 # ContactUs
 @app.route("/contact", methods=["GET", "POST"])
 def contact():
@@ -160,3 +160,49 @@ def contact():
     except:
         return make_response(jsonify({'errorMessage': 'Try Again!'}), 401)
     return make_response(jsonify({'message': 'Message sent.'}), 200)
+
+
+# Score
+@app.route("/score", methods=["GET", "POST"])
+@token_required
+def results(user_id):
+
+    con = mysql.connection  
+    db = con.cursor()
+
+    # Get Input
+    score = request.json["score"]
+    mode = request.json["mode"]
+    column = 'score_' + mode
+    
+    # Get total score from DB
+    db.execute("SELECT total FROM users WHERE userID=(%s)",[user_id])
+    dict = db.fetchone()
+    total = 0
+    for val in dict.values():
+        total = val + score
+
+    try:
+        db.execute("UPDATE users SET total = %s," + column + " = %s WHERE userID = %s", (total, score, user_id))
+        con.commit()
+
+    except:
+        return make_response(jsonify({'errorMessage': 'Try Again!'}), 401)
+    
+    return make_response(jsonify({'message': 'Score updated.'}), 200)
+
+
+# Leaderboard
+@app.route("/Leaderboard", methods=["GET", "POST"])
+@token_required
+def Leaderboard(user_id):  
+    db = mysql.connection.cursor()
+    # Get Top 5 highest score
+    db.execute("SELECT username, total FROM users ORDER BY total DESC LIMIT 5")
+    highest = db.fetchall()
+
+    # User's current rank
+    db.execute("WITH rankDB AS (SELECT userID, RANK() OVER (ORDER BY total DESC) AS rank FROM users) SELECT rank FROM rankDB WHERE userID = %s", (user_id))
+    cur_rank = db.fetchone()
+
+    return make_response(jsonify({'data': highest}, {'cur': cur_rank}), 200)

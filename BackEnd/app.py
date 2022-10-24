@@ -1,10 +1,9 @@
 from datetime import datetime, timedelta
-from flask import Flask, make_response, jsonify, redirect, request, session
+from flask import Flask, make_response, jsonify, request, session
 from flask_session import Session
 from flask_mysqldb import MySQL
-from functools import total_ordering, wraps
+from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
-from flask import g, request, redirect, url_for
 from flask_cors import CORS
 import jwt
 

@@ -87,7 +87,7 @@ def login():
 
     token = jwt.encode({
         'userID': rows[0]["userID"],
-        'exp': datetime.utcnow() + timedelta(minutes = 3000)
+        'exp': datetime.utcnow() + timedelta(minutes = 60)
     }, app.config['SECRET_KEY'], algorithm="HS256")
 
     return make_response(jsonify({'token' : token}), 200)
@@ -112,7 +112,7 @@ def register():
     try:
         db.execute("INSERT INTO users(username, hash, password) VALUES (%s,%s,%s)", (username, hash, password))
         con.commit()
-        new_user = db.fetchall()
+        new_user = db.fetchone()
     except:
         return make_response(jsonify({'errorMessage': 'Account Existed!'}), 401)
 
@@ -193,16 +193,16 @@ def results(user_id):
 
 
 # Leaderboard
-@app.route("/Leaderboard", methods=["GET", "POST"])
+@app.route("/leaderboard", methods=["GET", "POST"])
 @token_required
-def Leaderboard(user_id):  
+def leaderboard(user_id):  
     db = mysql.connection.cursor()
     # Get Top 5 highest score
     db.execute("SELECT username, total FROM users ORDER BY total DESC LIMIT 5")
     highest = db.fetchall()
 
     # User's current rank
-    db.execute("WITH rankDB AS (SELECT userID, RANK() OVER (ORDER BY total DESC) AS rank FROM users) SELECT rank FROM rankDB WHERE userID = %s", (user_id))
+    db.execute("WITH rankDB AS (SELECT userID, RANK() OVER (ORDER BY total DESC) AS rank FROM users) SELECT rank FROM rankDB WHERE userID = %s", [user_id])
     cur_rank = db.fetchone()
 
-    return make_response(jsonify({'data': highest}, {'cur': cur_rank}), 200)
+    return make_response(jsonify({'data': highest, 'rank': cur_rank}), 200)

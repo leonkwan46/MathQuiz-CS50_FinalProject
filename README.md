@@ -4,7 +4,7 @@
 
 ➕ FRONTEND by Amazing partner KhoPH (https://github.com/khoph0312) ➕
 
-➕ https://github.com/khoph0312/react-final-project ➕
+➕ Check out: https://github.com/khoph0312/react-final-project ➕
 
 📏 This is a MathQuiz website, built for CS50 Final Project
 

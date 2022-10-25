@@ -1,6 +1,11 @@
 # 📐 cs50fp 📏
 
+- THIS IS ONLY * BACKEND - 
+
 ➕➖➗🔢📏 
+- FRONTEND by Amazing partner KhoPH (https://github.com/khoph0312) -
+
+- https://github.com/khoph0312/react-final-project -
 
 📏 This is a MathQuiz website, built for CS50 Final Project
 

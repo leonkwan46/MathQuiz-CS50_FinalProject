@@ -2,7 +2,7 @@
 
 ➕ THIS IS ONLY * BACKEND ➕
 
-➕ FRONTEND by Amazing partner KhoPH (https://github.com/khoph0312) ➕
+➕ FRONTEND by amazing partner KhoPH (https://github.com/khoph0312) ➕
 
 ➕ Check out: https://github.com/khoph0312/react-final-project ➕
 

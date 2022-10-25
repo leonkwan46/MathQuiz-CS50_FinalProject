@@ -177,6 +177,7 @@ def results(user_id):
     # Get total score from DB
     db.execute("SELECT total FROM users WHERE userID=(%s)",[user_id])
     dict = db.fetchone()
+    
     total = 0
     for val in dict.values():
         total = val + score

@@ -1,11 +1,10 @@
 # 📐 cs50fp 📏
 
-- THIS IS ONLY * BACKEND - 
+➕ THIS IS ONLY * BACKEND ➕
 
-➕➖➗🔢📏 
-- FRONTEND by Amazing partner KhoPH (https://github.com/khoph0312) -
+➕ FRONTEND by Amazing partner KhoPH (https://github.com/khoph0312) ➕
 
-- https://github.com/khoph0312/react-final-project -
+➕ https://github.com/khoph0312/react-final-project ➕
 
 📏 This is a MathQuiz website, built for CS50 Final Project
 
@@ -14,3 +13,5 @@
 📏 We tried using AWS Services, such as EC2, Lambda, RDS, IAM - We ended up paying USD 70+ for Database service and we quit using it (Great Experience tho 🥲)
 
 📏 We Decided to use localhost server, with XAMPP, Apache to connect MySQL server
+
+➕➖➗🔢📏 

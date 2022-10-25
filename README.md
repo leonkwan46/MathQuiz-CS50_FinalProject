@@ -1,4 +1,4 @@
-# 📐 cs50fp 📏
+# 📐 MathQuiz-CS50_FinalProject 📏
 
 ➕ THIS IS ONLY * BACKEND ➕
 

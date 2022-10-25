@@ -16,7 +16,7 @@
 
 ➕➖➗🔢📏 
 
-![1](https://user-images.githubusercontent.com/66780058/197855467-52a6084d-062b-434a-8638-6cb59254f66d.png)
+![1](https://user-images.githubusercontent.com/66780058/197856674-436d2200-f630-41ea-9332-698206e6048d.png)
 
 ![2](https://user-images.githubusercontent.com/66780058/197856000-60cfd6dc-e9a7-4bd4-9eec-d02df4f44019.png)
 

@@ -28,7 +28,7 @@ app.config['SECRET_KEY'] = 'test key'
 mysql = MySQL(app)
 
 
-
+# Token
 def token_required(f):
     @wraps(f)
     def decorated(*args, **kwargs):

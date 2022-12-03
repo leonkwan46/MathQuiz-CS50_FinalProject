@@ -10,13 +10,12 @@ import jwt
 app = Flask(__name__)
 CORS(app)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
-
-if __name__ == '__main__':
-    app.run(debug=True)
-
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
+
+# Token Config
+app.config['SECRET_KEY'] = 'test key'
 
 # DB & MySQL Connection
 app.config["MYSQL_HOST"] = "localhost"
@@ -24,10 +23,11 @@ app.config["MYSQL_USER"] = "root"
 app.config["MYSQL_PASSWORD"] = ""
 app.config["MYSQL_DB"] = "quiz"
 app.config['MYSQL_CURSORCLASS'] = 'DictCursor'
-app.config['SECRET_KEY'] = 'test key'
 mysql = MySQL(app)
 
-
+if __name__ == '__main__':
+    app.run(debug=True)
+    
 # Token
 def token_required(f):
     @wraps(f)
@@ -174,13 +174,27 @@ def results(user_id):
     mode = request.json["mode"]
     column = 'score_' + mode
     
+    # Update score_mode
+    try:
+        if column == 'score_easy':
+            db.execute("UPDATE users SET score_easy = %s WHERE userID = %s", (score, user_id))
+            con.commit()
+        elif column == 'score_medium':
+            db.execute("UPDATE users SET score_medium = %s WHERE userID = %s", (score, user_id))
+            con.commit()
+        elif column == 'score_hard':
+            db.execute("UPDATE users SET score_hard = %s WHERE userID = %s", (score, user_id))
+            con.commit()
+    except:
+        return make_response(jsonify({'errorMessage': 'Try Again!'}), 401)
+
     # Get total score from DB
-    db.execute("SELECT total FROM users WHERE userID=(%s)",[user_id])
+    db.execute("SELECT score_easy, score_medium, score_hard FROM users WHERE userID=(%s)",[user_id])
     dict = db.fetchone()
-    
+
     total = 0
     for val in dict.values():
-        total = val + score
+        total += val
 
     try:
         db.execute("UPDATE users SET total = %s," + column + " = %s WHERE userID = %s", (total, score, user_id))

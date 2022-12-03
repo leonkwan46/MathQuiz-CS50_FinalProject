@@ -8,8 +8,12 @@ from flask_cors import CORS
 import jwt
 
 app = Flask(__name__)
-CORS(app)
 app.config["TEMPLATES_AUTO_RELOAD"] = True
+
+# for making cross-origin AJAX possible, due to React and Flask
+CORS(app)
+
+# Session Data Storing by FileSystem
 app.config["SESSION_PERMANENT"] = False
 app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
